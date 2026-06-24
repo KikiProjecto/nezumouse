@@ -23,7 +23,6 @@
   html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Space Grotesk',sans-serif; color:var(--text); touch-action:none; }
   canvas { display:block; width:100%; height:100%; }
 
-  /* 顶部栏 */
   #topbar { position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; background:linear-gradient(180deg,rgba(10,10,15,0.95),rgba(10,10,15,0)); pointer-events:none; }
   #topbar > * { pointer-events:auto; }
   .logo { font-family:'Orbitron',monospace; font-weight:900; font-size:1.15rem; letter-spacing:2px; color:var(--accent); text-shadow:0 0 20px rgba(232,168,56,0.3); }
@@ -33,7 +32,6 @@
   #play-btn:hover { transform:scale(1.05); box-shadow:0 0 30px rgba(56,232,168,0.45); }
   #exit-btn { background:linear-gradient(135deg,var(--accent),#d49530); color:#0A0A0F; font-family:'Orbitron',monospace; font-weight:700; font-size:0.75rem; letter-spacing:1.5px; padding:8px 18px; border:none; border-radius:8px; cursor:pointer; transition:all 0.25s; display:none; }
 
-  /* 侧边栏 */
   #sidebar { position:fixed; top:56px; left:0; bottom:0; width:240px; background:var(--surface); border-right:1px solid var(--border); z-index:90; overflow-y:auto; transition:transform 0.35s cubic-bezier(.4,0,.2,1); backdrop-filter:blur(16px); }
   #sidebar.hidden { transform:translateX(-100%); }
   #sidebar::-webkit-scrollbar { width:4px; }
@@ -69,7 +67,6 @@
   .rgb-switch::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:white; transition:transform 0.3s; }
   .rgb-switch.on::after { transform:translateX(18px); }
 
-  /* 游戏模式HUD */
   #play-hud { position:fixed; top:56px; left:0; right:0; bottom:0; pointer-events:none; z-index:80; display:none; }
   #play-hud > * { pointer-events:auto; }
   .stat-panel { position:absolute; top:16px; left:16px; background:var(--surface); backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:12px; padding:14px 18px; min-width:180px; }
@@ -80,25 +77,21 @@
   .ability-glide { background:rgba(100,180,255,0.2); color:#64b4ff; }
   .ability-thrust { background:rgba(255,120,50,0.2); color:#ff7832; }
 
-  /* 虚拟摇杆 */
   #joystick-zone { position:absolute; bottom:30px; left:30px; width:130px; height:130px; display:none; }
   .joystick-base { width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.15); position:relative; }
   .joystick-knob { width:50px; height:50px; border-radius:50%; background:rgba(232,168,56,0.5); border:2px solid rgba(232,168,56,0.7); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); transition:none; }
 
   #action-btn { position:absolute; bottom:50px; right:40px; width:70px; height:70px; border-radius:50%; background:rgba(56,232,168,0.25); border:2px solid rgba(56,232,168,0.5); display:none; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.6rem; font-weight:700; color:var(--accent2); cursor:pointer; }
 
-  /* 提示信息 */
   .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--border); padding:10px 20px; border-radius:10px; font-size:0.8rem; z-index:200; opacity:0; transition:opacity 0.3s; pointer-events:none; backdrop-filter:blur(12px); }
   .toast.show { opacity:1; }
 
-  /* 响应式：移动端 */
   @media (max-width:768px) {
     #sidebar { width:100%; top:auto; bottom:0; height:45vh; border-right:none; border-top:1px solid var(--border); border-radius:16px 16px 0 0; }
     #sidebar.hidden { transform:translateY(100%); }
     .stat-panel { top:8px; left:8px; padding:10px 12px; min-width:150px; }
   }
 
-  /* 动画 */
   @keyframes pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .fade-in { animation:fadeIn 0.4s ease-out; }
@@ -110,14 +103,12 @@
 </head>
 <body>
 
-<!-- 顶部栏 -->
 <header id="topbar">
   <div class="logo">MOUSE<span>FORGE</span></div>
   <button id="play-btn" aria-label="Enter physics sandbox">ENTER ARENA <i class="fas fa-play" style="margin-left:6px"></i></button>
   <button id="exit-btn" aria-label="Return to configurator"><i class="fas fa-arrow-left" style="margin-right:6px"></i> CONFIGURE</button>
 </header>
 
-<!-- 侧边栏：自定义面板 -->
 <nav id="sidebar" role="navigation" aria-label="Customization panel">
   <div class="sb-section">
     <div class="sb-title">Body Color</div>
@@ -143,7 +134,6 @@
   </div>
 </nav>
 
-<!-- 游戏模式HUD -->
 <div id="play-hud">
   <div class="stat-panel" id="stat-panel">
     <div style="font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:2px;color:var(--accent2);margin-bottom:8px">MOUSE STATS</div>
@@ -162,10 +152,8 @@
   </div>
 </div>
 
-<!-- Toast通知 -->
 <div class="toast" id="toast"></div>
 
-<!-- 3D画布容器 -->
 <div id="canvas-container" style="width:100%;height:100%;position:fixed;top:0;left:0"></div>
 
 <script type="importmap">
@@ -181,9 +169,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ============================================================
-// 状态管理（类Zustand响应式Store）
-// ============================================================
 function createStore(init) {
   let state = { ...init };
   const subs = new Set();
@@ -205,7 +190,7 @@ const store = createStore({
   addons: { socket_top: null, socket_back: null, socket_left: null, socket_right: null }
 });
 
-// 颜色预设
+
 const COLORS = [
   { name:'Stealth', hex:'#1A1A1A' },
   { name:'Arctic', hex:'#E0E0E0' },
@@ -230,7 +215,7 @@ const ADDON_DEFS = [
   { id:'weights', name:'Heavy Plates', socket:'socket_top', icon:'fa-weight-hanging', iconBg:'#5a5a5a', mass:1.0, speed:-1.0, special:null }
 ];
 
-// 插座位置（相对于鼠标模型中心）
+
 const SOCKET_POSITIONS = {
   socket_top:   new THREE.Vector3(0, 0.38, -0.15),
   socket_back:  new THREE.Vector3(0, 0.22, -1.05),
@@ -238,9 +223,7 @@ const SOCKET_POSITIONS = {
   socket_right: new THREE.Vector3(0.6, 0.18, -0.1)
 };
 
-// ============================================================
-// Three.js 场景初始化
-// ============================================================
+
 const container = document.getElementById('canvas-container');
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -253,7 +236,7 @@ container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 
-// 配置器背景
+
 const bgCanvas = document.createElement('canvas');
 bgCanvas.width = 512; bgCanvas.height = 512;
 const bgCtx = bgCanvas.getContext('2d');
@@ -266,11 +249,10 @@ bgCtx.fillRect(0,0,512,512);
 const bgTexture = new THREE.CanvasTexture(bgCanvas);
 scene.background = bgTexture;
 
-// 相机
+
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 200);
 camera.position.set(2.2, 2.0, 3.0);
 
-// 灯光
 const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
 scene.add(ambientLight);
 
@@ -294,7 +276,6 @@ const rimLight = new THREE.PointLight(0xe8a838, 0.8, 10);
 rimLight.position.set(-1, 1, -3);
 scene.add(rimLight);
 
-// 地面（配置器模式展示台）
 const platformGeo = new THREE.CylinderGeometry(1.8, 1.9, 0.08, 64);
 const platformMat = new THREE.MeshStandardMaterial({ color:0x181820, roughness:0.3, metalness:0.7 });
 const platform = new THREE.Mesh(platformGeo, platformMat);
@@ -302,7 +283,6 @@ platform.position.y = -0.04;
 platform.receiveShadow = true;
 scene.add(platform);
 
-// 展示台发光环
 const ringGeo = new THREE.TorusGeometry(1.85, 0.015, 8, 128);
 const ringMat = new THREE.MeshBasicMaterial({ color:0xe8a838 });
 const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -310,7 +290,6 @@ ring.rotation.x = -Math.PI/2;
 ring.position.y = 0.01;
 scene.add(ring);
 
-// 轨道控制器
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -320,14 +299,10 @@ controls.maxDistance = 6;
 controls.maxPolarAngle = Math.PI * 0.48;
 controls.update();
 
-// ============================================================
-// 增强的纹理系统
-// ============================================================
 function makeCarbonTexture() {
   const c = document.createElement('canvas');
   c.width = 256; c.height = 256;
   const ctx = c.getContext('2d');
-  // 更精细的碳纤维纹理
   ctx.fillStyle = '#1a1a1a';
   ctx.fillRect(0,0,256,256);
   const s = 16;
@@ -337,7 +312,7 @@ function makeCarbonTexture() {
       ctx.fillStyle = even ? '#2a2a2a' : '#151515';
       ctx.fillRect(x,y,s/2,s/2);
       ctx.fillRect(x+s/2,y+s/2,s/2,s/2);
-      // 添加一些随机噪声增加真实感
+      
       if (Math.random() > 0.7) {
         ctx.fillStyle = 'rgba(255,255,255,0.05)';
         ctx.fillRect(x, y, s, s);
@@ -356,7 +331,7 @@ function makeBrushedMetalTexture() {
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#4a4a4a';
   ctx.fillRect(0,0,256,256);
-  // 横向拉丝纹理
+  
   for (let y=0; y<256; y+=2) {
     const opacity = 0.02 + Math.random() * 0.03;
     ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
@@ -379,7 +354,7 @@ function makeRubberTexture() {
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#2d2d2d';
   ctx.fillRect(0,0,128,128);
-  // 添加微小颗粒感
+  
   for (let i=0; i<500; i++) {
     const x = Math.random() * 128;
     const y = Math.random() * 128;
@@ -398,7 +373,7 @@ function makeGlossyPlasticTexture() {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 64;
   const ctx = c.getContext('2d');
-  // 创建微光塑料纹理
+ 
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0,0,64,64);
   const noise = ctx.createImageData(64, 64);
@@ -416,13 +391,11 @@ function makeGlossyPlasticTexture() {
   return tex;
 }
 
-// 预生成纹理
 const carbonTex = makeCarbonTexture();
 const brushedMetalTex = makeBrushedMetalTexture();
 const rubberTex = makeRubberTexture();
 const glossyPlasticTex = makeGlossyPlasticTexture();
 
-// 增强的材质创建函数
 function makeMat(color, finish, textureOptions = {}) {
   const params = { 
     color: new THREE.Color(color),
@@ -430,8 +403,7 @@ function makeMat(color, finish, textureOptions = {}) {
     metalness: 0.1
   };
 
-  // 根据finish类型设置材质属性
-  switch(finish) {
+    switch(finish) {
     case 'matte':
       params.roughness = 0.8;
       params.metalness = 0.05;
@@ -461,12 +433,11 @@ function makeMat(color, finish, textureOptions = {}) {
       params.metalness = 0.1;
       break;
     default:
-      // 默认处理
+      
       params.roughness = 0.8;
       params.metalness = 0.05;
   }
 
-  // 应用自定义纹理选项
   if (textureOptions.map) params.map = textureOptions.map;
   if (textureOptions.roughness !== undefined) params.roughness = textureOptions.roughness;
   if (textureOptions.metalness !== undefined) params.metalness = textureOptions.metalness;
@@ -474,13 +445,9 @@ function makeMat(color, finish, textureOptions = {}) {
   return new THREE.MeshStandardMaterial(params);
 }
 
-// ============================================================
-// 鼠标3D模型构建
-// ============================================================
 const mouseGroup = new THREE.Group();
 scene.add(mouseGroup);
 
-// 子网格引用
 const subMeshes = {};
 const socketIndicators = {};
 const attachedAddons = {};
@@ -492,7 +459,6 @@ function makeMat(color, finish) {
   return new THREE.MeshStandardMaterial(params);
 }
 
-// 上壳体
 function buildUpperShell() {
   const geo = new THREE.SphereGeometry(1, 48, 24, 0, Math.PI*2, 0, Math.PI*0.5);
   const pos = geo.attributes.position;
@@ -512,7 +478,6 @@ function buildUpperShell() {
   return mesh;
 }
 
-// 下壳体
 function buildLowerShell() {
   const geo = new THREE.CylinderGeometry(0.58, 0.6, 0.06, 48);
   const mat = new THREE.MeshStandardMaterial({ color:0x111115, roughness:0.6, metalness:0.2 });
@@ -523,7 +488,6 @@ function buildLowerShell() {
   return mesh;
 }
 
-// 鼠标按钮
 function buildButton(isLeft) {
   const geo = new THREE.BoxGeometry(0.26, 0.035, 0.65, 4, 1, 4);
   const pos = geo.attributes.position;
@@ -541,7 +505,6 @@ function buildButton(isLeft) {
   return mesh;
 }
 
-// 滚轮
 function buildScrollWheel() {
   const geo = new THREE.CylinderGeometry(0.035, 0.035, 0.07, 16);
   const mat = new THREE.MeshStandardMaterial({ color:0x888888, roughness:0.4, metalness:0.6 });
@@ -552,7 +515,6 @@ function buildScrollWheel() {
   return mesh;
 }
 
-// 侧边握把
 function buildGrip(isLeft) {
   const geo = new THREE.BoxGeometry(0.04, 0.14, 0.7);
   const mat = new THREE.MeshStandardMaterial({ color:0x222228, roughness:0.95, metalness:0.0 });
@@ -562,7 +524,6 @@ function buildGrip(isLeft) {
   return mesh;
 }
 
-// 构建完整鼠标
 function buildMouse() {
   while (mouseGroup.children.length) mouseGroup.remove(mouseGroup.children[0]);
   subMeshes.upper = buildUpperShell();
@@ -575,7 +536,7 @@ function buildMouse() {
 
   Object.values(subMeshes).forEach(m => mouseGroup.add(m));
 
-  // 插座指示器
+
   Object.entries(SOCKET_POSITIONS).forEach(([name, pos]) => {
     const geo = new THREE.SphereGeometry(0.06, 16, 16);
     const mat = new THREE.MeshBasicMaterial({ color:0xe8a838, transparent:true, opacity:0 });
@@ -589,7 +550,6 @@ function buildMouse() {
 }
 buildMouse();
 
-// RGB灯带
 let rgbStrip = null;
 function updateRGBStrip() {
   if (rgbStrip) { mouseGroup.remove(rgbStrip); rgbStrip = null; }
@@ -609,7 +569,6 @@ function updateRGBStrip() {
   mouseGroup.add(rgbStrip);
 }
 
-// 更新鼠标外观
 function updateMouseAppearance() {
   const s = store.get();
   const colorMat = makeMat(s.bodyColor, s.finish);
@@ -622,9 +581,6 @@ function updateMouseAppearance() {
   rebuildAddons();
 }
 
-// ============================================================
-// Addon 3D模型工厂
-// ============================================================
 function createAddonModel(addonId) {
   const group = new THREE.Group();
   const metalMat = new THREE.MeshStandardMaterial({ color:0x888899, roughness:0.3, metalness:0.8 });
@@ -632,8 +588,7 @@ function createAddonModel(addonId) {
   const glowMat = new THREE.MeshBasicMaterial({ color:0x38e8a8 });
 
   switch(addonId) {
-    case 'spoiler': {
-      // 扰流板：竖支柱 + 横翼
+    case 'spoiler': { 
       const stand = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.2, 0.04), metalMat);
       stand.position.set(0, 0.1, 0);
       group.add(stand);
@@ -643,7 +598,7 @@ function createAddonModel(addonId) {
       break;
     }
     case 'exhaust': {
-      // 排气管
+
       for (let side of [-1, 1]) {
         const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.2, 12), metalMat);
         pipe.rotation.x = Math.PI * 0.25;
@@ -656,8 +611,7 @@ function createAddonModel(addonId) {
       }
       break;
     }
-    case 'gears_l': case 'gears_r': {
-      // 齿轮
+    case 'gears_l': case 'gears_r': { 
       const ringGeo = new THREE.TorusGeometry(0.12, 0.02, 8, 24);
       const gear = new THREE.Mesh(ringGeo, metalMat);
       gear.rotation.y = Math.PI/2;
@@ -666,7 +620,7 @@ function createAddonModel(addonId) {
       const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.04, 12), darkMat);
       hub.rotation.z = Math.PI/2;
       group.add(hub);
-      // 齿
+      
       for (let i=0; i<8; i++) {
         const angle = (i/8)*Math.PI*2;
         const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.025, 0.03), metalMat);
@@ -676,7 +630,6 @@ function createAddonModel(addonId) {
       break;
     }
     case 'antenna': {
-      // 天线
       const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.4, 8), metalMat);
       rod.position.set(0, 0.2, 0);
       group.add(rod);
@@ -686,7 +639,6 @@ function createAddonModel(addonId) {
       break;
     }
     case 'wings': {
-      // 机械翼
       for (let side of [-1, 1]) {
         const wingShape = new THREE.Shape();
         wingShape.moveTo(0, 0);
@@ -702,7 +654,6 @@ function createAddonModel(addonId) {
       break;
     }
     case 'thruster': {
-      // 火箭推进器
       for (let side of [-1, 1]) {
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.2, 12), darkMat);
         body.rotation.x = Math.PI * 0.3;
@@ -712,7 +663,7 @@ function createAddonModel(addonId) {
         nozzle.rotation.x = -Math.PI * 0.7;
         nozzle.position.set(side * 0.18, 0.02, -0.14);
         group.add(nozzle);
-        // 火焰
+
         const flame = new THREE.Mesh(
           new THREE.ConeGeometry(0.04, 0.15, 8),
           new THREE.MeshBasicMaterial({ color:0xff6622, transparent:true, opacity:0.8 })
@@ -725,7 +676,6 @@ function createAddonModel(addonId) {
       break;
     }
     case 'weights': {
-      // 配重板
       for (let side of [-1, 1]) {
         const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.04, 24), darkMat);
         plate.position.set(side * 0.18, 0.08, 0);
@@ -738,9 +688,7 @@ function createAddonModel(addonId) {
   return group;
 }
 
-// 重建所有已附加的Addon
 function rebuildAddons() {
-  // 移除旧的addon模型
   Object.keys(attachedAddons).forEach(key => {
     if (attachedAddons[key]) {
       mouseGroup.remove(attachedAddons[key]);
@@ -760,9 +708,6 @@ function rebuildAddons() {
   });
 }
 
-// ============================================================
-// 物理引擎（简易Euler积分 + AABB碰撞）
-// ============================================================
 const GRAVITY = -15;
 const GROUND_Y = 0;
 
@@ -787,7 +732,6 @@ class PhysicsBody {
     } else {
       this.onGround = false;
     }
-    // 边界
     this.position.x = THREE.MathUtils.clamp(this.position.x, -14, 14);
     this.position.z = THREE.MathUtils.clamp(this.position.z, -14, 14);
   }
@@ -821,9 +765,6 @@ function resolveCollision(dynamic, statik) {
   }
 }
 
-// ============================================================
-// 游戏环境构建
-// ============================================================
 const envGroup = new THREE.Group();
 envGroup.visible = false;
 scene.add(envGroup);
@@ -834,7 +775,6 @@ function buildPlayEnvironment() {
   while (envGroup.children.length) envGroup.remove(envGroup.children[0]);
   envBodies.length = 0;
 
-  // 地面
   const floorGeo = new THREE.PlaneGeometry(30, 30);
   const floorMat = new THREE.MeshStandardMaterial({ color:0x8B7355, roughness:0.8, metalness:0.05 });
   const floor = new THREE.Mesh(floorGeo, floorMat);
@@ -842,12 +782,10 @@ function buildPlayEnvironment() {
   floor.receiveShadow = true;
   envGroup.add(floor);
 
-  // 地面网格线
   const gridHelper = new THREE.GridHelper(30, 30, 0x665544, 0x554433);
   gridHelper.position.y = 0.01;
   envGroup.add(gridHelper);
 
-  // 咖啡杯
   const mugGroup = new THREE.Group();
   const mugBody = new THREE.Mesh(
     new THREE.CylinderGeometry(0.5, 0.45, 1.0, 24),
@@ -856,7 +794,7 @@ function buildPlayEnvironment() {
   mugBody.position.y = 0.5;
   mugBody.castShadow = true;
   mugGroup.add(mugBody);
-  // 把手
+
   const handleGeo = new THREE.TorusGeometry(0.2, 0.04, 8, 16, Math.PI);
   const handle = new THREE.Mesh(handleGeo, new THREE.MeshStandardMaterial({ color:0xf5f5f0, roughness:0.3 }));
   handle.position.set(0.55, 0.5, 0);
@@ -867,7 +805,6 @@ function buildPlayEnvironment() {
   envBodies.push(new PhysicsBody(new THREE.Vector3(3, 0.5, 2), new THREE.Vector3(0.5, 0.5, 0.5), 0, true));
   envBodies[envBodies.length-1].mesh = mugGroup;
 
-  // 键盘坡道
   const rampGeo = new THREE.BoxGeometry(3, 0.15, 1.2);
   const rampMat = new THREE.MeshStandardMaterial({ color:0x333338, roughness:0.5, metalness:0.3 });
   const ramp = new THREE.Mesh(rampGeo, rampMat);
@@ -877,7 +814,6 @@ function buildPlayEnvironment() {
   envGroup.add(ramp);
   envBodies.push(new PhysicsBody(new THREE.Vector3(-2, 0.075, 3), new THREE.Vector3(1.5, 0.075, 0.6), 0, true));
 
-  // 键盘按键
   for (let row=0; row<4; row++) {
     for (let col=0; col<8; col++) {
       const key = new THREE.Mesh(
@@ -890,14 +826,13 @@ function buildPlayEnvironment() {
     }
   }
 
-  // 笔记本桥
   const notebookGeo = new THREE.BoxGeometry(2.5, 0.06, 1.8);
   const notebookMat = new THREE.MeshStandardMaterial({ color:0x4466aa, roughness:0.6, metalness:0.1 });
   const notebook = new THREE.Mesh(notebookGeo, notebookMat);
   notebook.position.set(0, 0.8, -3);
   notebook.castShadow = true; notebook.receiveShadow = true;
   envGroup.add(notebook);
-  // 桥支撑
+
   const support1 = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.8, 0.15), new THREE.MeshStandardMaterial({ color:0x888888 }));
   support1.position.set(-1.1, 0.4, -3);
   envGroup.add(support1);
@@ -906,7 +841,6 @@ function buildPlayEnvironment() {
   envGroup.add(support2);
   envBodies.push(new PhysicsBody(new THREE.Vector3(0, 0.83, -3), new THREE.Vector3(1.25, 0.03, 0.9), 0, true));
 
-  // 铅笔
   for (let i=0; i<3; i++) {
     const pencil = new THREE.Mesh(
       new THREE.CylinderGeometry(0.03, 0.03, 1.5, 8),
@@ -919,7 +853,6 @@ function buildPlayEnvironment() {
     envGroup.add(pencil);
   }
 
-  // 显示器
   const monitorBase = new THREE.Mesh(
     new THREE.CylinderGeometry(0.4, 0.45, 0.08, 24),
     new THREE.MeshStandardMaterial({ color:0x333340, roughness:0.3, metalness:0.5 })
@@ -941,7 +874,6 @@ function buildPlayEnvironment() {
   envGroup.add(monitorScreen);
   envBodies.push(new PhysicsBody(new THREE.Vector3(-4, 0.7, -2), new THREE.Vector3(1, 1.4, 0.1), 0, true));
 
-  // 散落的回形针
   for (let i=0; i<6; i++) {
     const clip = new THREE.Mesh(
       new THREE.TorusGeometry(0.08, 0.012, 6, 12),
@@ -953,7 +885,6 @@ function buildPlayEnvironment() {
     envGroup.add(clip);
   }
 
-  // 便签纸
   const sticky = new THREE.Mesh(
     new THREE.BoxGeometry(0.8, 0.01, 0.8),
     new THREE.MeshStandardMaterial({ color:0xffee55, roughness:0.8 })
@@ -962,7 +893,6 @@ function buildPlayEnvironment() {
   sticky.rotation.y = 0.4;
   envGroup.add(sticky);
 
-  // 大纸箱（可推动物体）
   const crateGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
   const crateMat = new THREE.MeshStandardMaterial({ color:0xAA8855, roughness:0.7, metalness:0.1 });
   const crate1 = new THREE.Mesh(crateGeo, crateMat);
@@ -982,9 +912,6 @@ function buildPlayEnvironment() {
 }
 buildPlayEnvironment();
 
-// ============================================================
-// 输入系统
-// ============================================================
 const input = { forward:0, right:0, jump:false, action:false, camX:0, camY:0 };
 const keys = {};
 window.addEventListener('keydown', e => { keys[e.code] = true; });
@@ -999,9 +926,6 @@ function updateInput() {
   if (keys['Space']) { input.jump = true; input.action = true; }
 }
 
-// ============================================================
-// 虚拟摇杆（移动端）
-// ============================================================
 const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const joystickZone = document.getElementById('joystick-zone');
 const joystickBase = document.getElementById('joystick-base');
@@ -1050,7 +974,6 @@ if (isMobile) {
   }, { passive:false });
   actionBtn.addEventListener('touchend', () => { input.action = false; input.jump = false; });
 
-  // 移动端相机控制
   let camTouchId = null;
   let camLastX = 0, camLastY = 0;
   renderer.domElement.addEventListener('touchstart', e => {
@@ -1080,7 +1003,6 @@ if (isMobile) {
   });
 }
 
-// 桌面端右键拖拽相机（Play Mode）
 let rightDrag = false, rightLastX = 0, rightLastY = 0;
 renderer.domElement.addEventListener('mousedown', e => {
   if (e.button === 2 && store.get().mode === 'play') { rightDrag = true; rightLastX = e.clientX; rightLastY = e.clientY; }
@@ -1094,9 +1016,7 @@ window.addEventListener('mousemove', e => {
 window.addEventListener('mouseup', e => { if (e.button === 2) rightDrag = false; });
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
-// ============================================================
-// 游戏模式逻辑
-// ============================================================
+
 let playerBody = null;
 let cameraYaw = Math.PI;
 let cameraPitch = 0.4;
@@ -1126,43 +1046,32 @@ function enterPlayMode() {
   if (s.mode === 'play') return;
   store.set({ mode: 'play' });
 
-  // 隐藏配置器UI
   document.getElementById('sidebar').classList.add('hidden');
   document.getElementById('play-btn').style.display = 'none';
   document.getElementById('exit-btn').style.display = 'block';
   document.getElementById('play-hud').style.display = 'block';
 
-  // 切换场景
   platform.visible = false;
   ring.visible = false;
   envGroup.visible = true;
 
-  // 设置鼠标位置
   mouseGroup.position.set(0, 0.18, 0);
   mouseGroup.rotation.set(0, 0, 0);
 
-  // 创建玩家物理体
   const stats = getStats();
   playerBody = new PhysicsBody(
     new THREE.Vector3(0, 0.18, 0),
     new THREE.Vector3(0.35, 0.18, 0.55),
     stats.mass
   );
+
   playerBody.mesh = mouseGroup;
-
-  // 禁用OrbitControls
   controls.enabled = false;
-
-  // 重置相机
   cameraYaw = Math.PI;
   cameraPitch = 0.4;
 
-  // 更新HUD
   updateHUD();
-
-  // 隐藏插座指示器
   Object.values(socketIndicators).forEach(ind => { ind.material.opacity = 0; });
-
   showToast('Arena activated — WASD to drive!');
 }
 
@@ -1207,12 +1116,10 @@ function updatePlayMode(dt) {
   updateInput();
   const stats = getStats();
 
-  // 相机旋转
   cameraYaw += input.camX;
   cameraPitch = THREE.MathUtils.clamp(cameraPitch + input.camY, 0.05, 1.3);
   input.camX = 0; input.camY = 0;
 
-  // 移动方向（相对于相机）
   const forward = new THREE.Vector3(-Math.sin(cameraYaw), 0, -Math.cos(cameraYaw));
   const right = new THREE.Vector3(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
   const moveDir = new THREE.Vector3();
@@ -1220,19 +1127,16 @@ function updatePlayMode(dt) {
   moveDir.addScaledVector(right, input.right);
   if (moveDir.length() > 0) moveDir.normalize();
 
-  // 加速/减速
   const accel = stats.speed * 8;
   const friction = 6;
   playerBody.velocity.x += moveDir.x * accel * dt;
   playerBody.velocity.z += moveDir.z * accel * dt;
 
-  // 摩擦力
   if (moveDir.length() < 0.1) {
     playerBody.velocity.x *= Math.max(0, 1 - friction * dt);
     playerBody.velocity.z *= Math.max(0, 1 - friction * dt);
   }
 
-  // 限速
   const hSpeed = Math.sqrt(playerBody.velocity.x**2 + playerBody.velocity.z**2);
   const maxSpeed = stats.speed * 1.2;
   if (hSpeed > maxSpeed) {
@@ -1240,21 +1144,17 @@ function updatePlayMode(dt) {
     playerBody.velocity.x *= scale;
     playerBody.velocity.z *= scale;
   }
-
-  // 跳跃
   if (input.jump && playerBody.onGround) {
     playerBody.velocity.y = 5 / Math.sqrt(stats.mass);
     input.jump = false;
   }
 
-  // 滑翔
   isGliding = false;
   if (stats.hasGlide && !playerBody.onGround && input.action && playerBody.velocity.y < -1) {
     playerBody.velocity.y = Math.max(playerBody.velocity.y, -1.5);
     isGliding = true;
   }
 
-  // 推进器
   thrustActive = false;
   if (stats.hasThrust && input.action) {
     if (thrustFuel > 0) {
@@ -1268,17 +1168,14 @@ function updatePlayMode(dt) {
     thrustFuel = Math.min(100, thrustFuel + 15 * dt);
   }
 
-  // 物理更新
   playerBody.update(dt);
 
-  // 碰撞检测
   envBodies.forEach(body => {
     if (body === playerBody) return;
     if (aabbOverlap(playerBody, body)) {
       if (body.isStatic) {
         resolveCollision(playerBody, body);
       } else {
-        // 推动动态物体
         const pushDir = new THREE.Vector3().subVectors(body.position, playerBody.position).normalize();
         const pushForce = stats.mass * 3;
         body.velocity.x += pushDir.x * pushForce * dt;
@@ -1288,7 +1185,6 @@ function updatePlayMode(dt) {
     }
   });
 
-  // 更新动态环境物体
   envBodies.forEach(body => {
     if (body.isStatic || body === playerBody) return;
     body.velocity.x *= 0.95;
@@ -1297,7 +1193,6 @@ function updatePlayMode(dt) {
     if (body.mesh) body.mesh.position.copy(body.position);
   });
 
-  // 更新鼠标模型位置和旋转
   mouseGroup.position.copy(playerBody.position);
   if (hSpeed > 0.1) {
     const targetRot = Math.atan2(playerBody.velocity.x, playerBody.velocity.z);
@@ -1307,7 +1202,6 @@ function updatePlayMode(dt) {
     mouseGroup.rotation.y += diff * 8 * dt;
   }
 
-  // 推进器火焰动画
   Object.values(attachedAddons).forEach(addon => {
     if (!addon) return;
     addon.traverse(c => {
@@ -1318,7 +1212,6 @@ function updatePlayMode(dt) {
     });
   });
 
-  // 相机跟随
   const camOffset = new THREE.Vector3(
     Math.sin(cameraYaw) * cameraDist * Math.cos(cameraPitch),
     cameraDist * Math.sin(cameraPitch) + 0.5,
@@ -1330,11 +1223,6 @@ function updatePlayMode(dt) {
   camera.lookAt(lookTarget);
 }
 
-// ============================================================
-// UI 事件绑定
-// ============================================================
-
-// 颜色选择
 const colorGrid = document.getElementById('color-grid');
 COLORS.forEach((c, i) => {
   const swatch = document.createElement('div');
@@ -1351,7 +1239,6 @@ COLORS.forEach((c, i) => {
   colorGrid.appendChild(swatch);
 });
 
-// 表面处理选择
 const finishGrid = document.getElementById('finish-grid');
 FINISHES.forEach(f => {
   const item = document.createElement('div');
@@ -1369,7 +1256,6 @@ FINISHES.forEach(f => {
   finishGrid.appendChild(item);
 });
 
-// RGB切换
 document.getElementById('rgb-toggle').addEventListener('click', () => {
   const s = store.get();
   store.set({ rgbEnabled: !s.rgbEnabled });
@@ -1377,7 +1263,6 @@ document.getElementById('rgb-toggle').addEventListener('click', () => {
   updateRGBStrip();
 });
 
-// Addon列表
 const addonListEl = document.getElementById('addon-list');
 function renderAddonList() {
   addonListEl.innerHTML = '';
@@ -1396,7 +1281,6 @@ function renderAddonList() {
     `;
     item.addEventListener('click', () => {
       if (isAttached) {
-        // 移除addon
         store.set(state => {
           const addons = { ...state.addons };
           Object.keys(addons).forEach(k => { if (addons[k] === def.id) addons[k] = null; });
@@ -1404,7 +1288,6 @@ function renderAddonList() {
         });
         showToast(`Removed ${def.name}`);
       } else {
-        // 附加addon到对应插座
         const socket = def.socket;
         const current = store.get().addons;
         if (current[socket] !== null) {
@@ -1426,7 +1309,6 @@ function renderAddonList() {
 }
 renderAddonList();
 
-// 清除所有addon
 document.getElementById('clear-btn').addEventListener('click', () => {
   store.set({ addons: { socket_top:null, socket_back:null, socket_left:null, socket_right:null } });
   renderAddonList();
@@ -1435,7 +1317,6 @@ document.getElementById('clear-btn').addEventListener('click', () => {
   showToast('All add-ons cleared');
 });
 
-// 插座闪烁效果
 function flashSockets() {
   const s = store.get();
   Object.entries(socketIndicators).forEach(([name, ind]) => {
@@ -1446,11 +1327,8 @@ function flashSockets() {
   });
 }
 
-// 模式切换按钮
 document.getElementById('play-btn').addEventListener('click', enterPlayMode);
 document.getElementById('exit-btn').addEventListener('click', exitPlayMode);
-
-// Toast通知
 function showToast(msg) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
@@ -1459,9 +1337,6 @@ function showToast(msg) {
   toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
-// ============================================================
-// 动画循环
-// ============================================================
 const clock = new THREE.Clock();
 let elapsed = 0;
 
@@ -1472,16 +1347,11 @@ function animate() {
 
   if (store.get().mode === 'configurator') {
     controls.update();
-    // 鼠标缓慢旋转展示
     mouseGroup.rotation.y += dt * 0.15;
-
-    // RGB灯带颜色循环
     if (store.get().rgbEnabled && rgbStrip) {
       const hue = (elapsed * 0.3) % 1;
       rgbStrip.material.color.setHSL(hue, 1, 0.5);
     }
-
-    // 插座指示器脉动
     const s = store.get();
     Object.entries(socketIndicators).forEach(([name, ind]) => {
       if (s.addons[name] === null) {
@@ -1490,21 +1360,14 @@ function animate() {
         ind.material.opacity = 0;
       }
     });
-
-    // 展示台环发光
     ring.material.color.setHSL(0.08 + Math.sin(elapsed * 0.5) * 0.02, 0.8, 0.55);
-
   } else {
-    // Play Mode
-    updatePlayMode(dt);
-
-    // RGB灯带颜色循环
+    updatePlayMode(dt); 
     if (store.get().rgbEnabled && rgbStrip) {
       const hue = (elapsed * 0.3) % 1;
       rgbStrip.material.color.setHSL(hue, 1, 0.5);
     }
 
-    // 天线闪烁
     Object.values(attachedAddons).forEach(addon => {
       if (!addon) return;
       addon.traverse(c => {
@@ -1514,25 +1377,18 @@ function animate() {
       });
     });
   }
-
-  // 环境光微调
   rimLight.intensity = 0.6 + Math.sin(elapsed * 0.8) * 0.2;
-
   renderer.render(scene, camera);
 }
 
-// 窗口大小调整
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// 启动
 animate();
 showToast('Customize your mouse, then enter the arena!');
-
-// 初始化外观
 updateMouseAppearance();
 </script>
 </body>
