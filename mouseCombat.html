@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mouse Forge — Configurator & Arena</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --surface: rgba(18,18,30,0.88);
+    --card: rgba(26,26,42,0.92);
+    --border: #2A2A3A;
+    --text: #F0F0F5;
+    --muted: #7A7A90;
+    --accent: #E8A838;
+    --accent2: #38E8A8;
+    --danger: #E84848;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Space Grotesk',sans-serif; color:var(--text); touch-action:none; }
+  canvas { display:block; width:100%; height:100%; }
+
+  /* 顶部栏 */
+  #topbar { position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; background:linear-gradient(180deg,rgba(10,10,15,0.95),rgba(10,10,15,0)); pointer-events:none; }
+  #topbar > * { pointer-events:auto; }
+  .logo { font-family:'Orbitron',monospace; font-weight:900; font-size:1.15rem; letter-spacing:2px; color:var(--accent); text-shadow:0 0 20px rgba(232,168,56,0.3); }
+  .logo span { color:var(--text); font-weight:400; }
+
+  #play-btn { background:linear-gradient(135deg,var(--accent2),#28c896); color:#0A0A0F; font-family:'Orbitron',monospace; font-weight:700; font-size:0.8rem; letter-spacing:1.5px; padding:10px 22px; border:none; border-radius:8px; cursor:pointer; transition:all 0.25s; box-shadow:0 0 20px rgba(56,232,168,0.25); }
+  #play-btn:hover { transform:scale(1.05); box-shadow:0 0 30px rgba(56,232,168,0.45); }
+  #exit-btn { background:linear-gradient(135deg,var(--accent),#d49530); color:#0A0A0F; font-family:'Orbitron',monospace; font-weight:700; font-size:0.75rem; letter-spacing:1.5px; padding:8px 18px; border:none; border-radius:8px; cursor:pointer; transition:all 0.25s; display:none; }
+
+  /* 侧边栏 */
+  #sidebar { position:fixed; top:56px; left:0; bottom:0; width:240px; background:var(--surface); border-right:1px solid var(--border); z-index:90; overflow-y:auto; transition:transform 0.35s cubic-bezier(.4,0,.2,1); backdrop-filter:blur(16px); }
+  #sidebar.hidden { transform:translateX(-100%); }
+  #sidebar::-webkit-scrollbar { width:4px; }
+  #sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  .sb-section { padding:14px 16px; border-bottom:1px solid var(--border); }
+  .sb-title { font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+
+  .color-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .color-swatch { width:100%; aspect-ratio:1; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:all 0.2s; position:relative; }
+  .color-swatch:hover { transform:scale(1.1); }
+  .color-swatch.active { border-color:var(--accent); box-shadow:0 0 10px rgba(232,168,56,0.4); }
+
+  .finish-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .finish-item { padding:8px 4px; border-radius:6px; text-align:center; font-size:0.7rem; cursor:pointer; border:1px solid var(--border); background:var(--card); transition:all 0.2s; }
+  .finish-item:hover { border-color:var(--accent); }
+  .finish-item.active { border-color:var(--accent); background:rgba(232,168,56,0.15); color:var(--accent); }
+
+  .addon-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; border:1px solid var(--border); background:var(--card); margin-bottom:6px; transition:all 0.2s; font-size:0.78rem; }
+  .addon-item:hover { border-color:var(--accent); background:rgba(232,168,56,0.08); }
+  .addon-item.active { border-color:var(--accent); background:rgba(232,168,56,0.15); }
+  .addon-item.attached { border-color:var(--accent2); background:rgba(56,232,168,0.12); }
+  .addon-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; }
+  .addon-info { flex:1; min-width:0; }
+  .addon-name { font-weight:600; }
+  .addon-socket { font-size:0.6rem; color:var(--muted); }
+  .addon-remove { color:var(--danger); cursor:pointer; font-size:0.8rem; display:none; }
+  .addon-item.attached .addon-remove { display:block; }
+
+  .rgb-toggle { display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .rgb-switch { width:40px; height:22px; border-radius:11px; background:var(--border); position:relative; transition:background 0.3s; }
+  .rgb-switch.on { background:var(--accent); }
+  .rgb-switch::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:white; transition:transform 0.3s; }
+  .rgb-switch.on::after { transform:translateX(18px); }
+
+  /* 游戏模式HUD */
+  #play-hud { position:fixed; top:56px; left:0; right:0; bottom:0; pointer-events:none; z-index:80; display:none; }
+  #play-hud > * { pointer-events:auto; }
+  .stat-panel { position:absolute; top:16px; left:16px; background:var(--surface); backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:12px; padding:14px 18px; min-width:180px; }
+  .stat-row { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:0.78rem; }
+  .stat-label { color:var(--muted); }
+  .stat-value { font-family:'Orbitron',monospace; font-weight:700; color:var(--accent2); font-size:0.82rem; }
+  .ability-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.65rem; font-weight:600; margin-right:4px; margin-top:4px; }
+  .ability-glide { background:rgba(100,180,255,0.2); color:#64b4ff; }
+  .ability-thrust { background:rgba(255,120,50,0.2); color:#ff7832; }
+
+  /* 虚拟摇杆 */
+  #joystick-zone { position:absolute; bottom:30px; left:30px; width:130px; height:130px; display:none; }
+  .joystick-base { width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.15); position:relative; }
+  .joystick-knob { width:50px; height:50px; border-radius:50%; background:rgba(232,168,56,0.5); border:2px solid rgba(232,168,56,0.7); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); transition:none; }
+
+  #action-btn { position:absolute; bottom:50px; right:40px; width:70px; height:70px; border-radius:50%; background:rgba(56,232,168,0.25); border:2px solid rgba(56,232,168,0.5); display:none; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.6rem; font-weight:700; color:var(--accent2); cursor:pointer; }
+
+  /* 提示信息 */
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--border); padding:10px 20px; border-radius:10px; font-size:0.8rem; z-index:200; opacity:0; transition:opacity 0.3s; pointer-events:none; backdrop-filter:blur(12px); }
+  .toast.show { opacity:1; }
+
+  /* 响应式：移动端 */
+  @media (max-width:768px) {
+    #sidebar { width:100%; top:auto; bottom:0; height:45vh; border-right:none; border-top:1px solid var(--border); border-radius:16px 16px 0 0; }
+    #sidebar.hidden { transform:translateY(100%); }
+    .stat-panel { top:8px; left:8px; padding:10px 12px; min-width:150px; }
+  }
+
+  /* 动画 */
+  @keyframes pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation:fadeIn 0.4s ease-out; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<header id="topbar">
+  <div class="logo">MOUSE<span>FORGE</span></div>
+  <button id="play-btn" aria-label="Enter physics sandbox">ENTER ARENA <i class="fas fa-play" style="margin-left:6px"></i></button>
+  <button id="exit-btn" aria-label="Return to configurator"><i class="fas fa-arrow-left" style="margin-right:6px"></i> CONFIGURE</button>
+</header>
+
+<!-- 侧边栏：自定义面板 -->
+<nav id="sidebar" role="navigation" aria-label="Customization panel">
+  <div class="sb-section">
+    <div class="sb-title">Body Color</div>
+    <div class="color-grid" id="color-grid"></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-title">Surface Finish</div>
+    <div class="finish-grid" id="finish-grid"></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-title">RGB Lighting</div>
+    <div class="rgb-toggle" id="rgb-toggle">
+      <div class="rgb-switch" id="rgb-switch"></div>
+      <span style="font-size:0.82rem">Underglow Strip</span>
+    </div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-title">Add-ons</div>
+    <div id="addon-list"></div>
+  </div>
+  <div class="sb-section" style="border-bottom:none">
+    <button id="clear-btn" style="width:100%;padding:8px;border-radius:8px;background:rgba(232,72,72,0.15);border:1px solid rgba(232,72,72,0.3);color:var(--danger);font-size:0.75rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;">Clear All Add-ons</button>
+  </div>
+</nav>
+
+<!-- 游戏模式HUD -->
+<div id="play-hud">
+  <div class="stat-panel" id="stat-panel">
+    <div style="font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:2px;color:var(--accent2);margin-bottom:8px">MOUSE STATS</div>
+    <div class="stat-row"><span class="stat-label">Speed</span><span class="stat-value" id="stat-speed">5.0</span></div>
+    <div class="stat-row"><span class="stat-label">Mass</span><span class="stat-value" id="stat-mass">1.0</span></div>
+    <div class="stat-row"><span class="stat-label">Abilities</span><span id="stat-abilities" style="font-size:0.72rem;color:var(--muted)">None</span></div>
+  </div>
+  <div id="joystick-zone" aria-label="Movement joystick">
+    <div class="joystick-base" id="joystick-base">
+      <div class="joystick-knob" id="joystick-knob"></div>
+    </div>
+  </div>
+  <div id="action-btn" role="button" aria-label="Activate special ability">ACT</div>
+  <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:0.65rem;text-align:center;pointer-events:none" id="controls-hint">
+    WASD to move &middot; SPACE to jump/ability &middot; Right-drag to look
+  </div>
+</div>
+
+<!-- Toast通知 -->
+<div class="toast" id="toast"></div>
+
+<!-- 3D画布容器 -->
+<div id="canvas-container" style="width:100%;height:100%;position:fixed;top:0;left:0"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================================
+// 状态管理（类Zustand响应式Store）
+// ============================================================
+function createStore(init) {
+  let state = { ...init };
+  const subs = new Set();
+  return {
+    get: () => state,
+    set: (partial) => {
+      state = { ...state, ...(typeof partial === 'function' ? partial(state) : partial) };
+      subs.forEach(fn => fn(state));
+    },
+    subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); }
+  };
+}
+
+const store = createStore({
+  mode: 'configurator', // 'configurator' | 'play'
+  bodyColor: '#2A2A2A',
+  finish: 'matte',
+  rgbEnabled: false,
+  addons: { socket_top: null, socket_back: null, socket_left: null, socket_right: null }
+});
+
+// 颜色预设
+const COLORS = [
+  { name:'Stealth', hex:'#1A1A1A' },
+  { name:'Arctic', hex:'#E0E0E0' },
+  { name:'Crimson', hex:'#C41E3A' },
+  { name:'Forest', hex:'#1B7A3D' },
+  { name:'Gold', hex:'#CFB53B' },
+  { name:'Navy', hex:'#1B3F8B' },
+  { name:'Sunset', hex:'#FF6B35' },
+  { name:'Plasma', hex:'#E8146E' }
+];
+
+const FINISHES = ['Matte','Glossy','Carbon'];
+
+const ADDON_DEFS = [
+  { id:'spoiler', name:'Aero Spoiler', socket:'socket_back', icon:'fa-wind', iconBg:'#3a6b4e', mass:0.1, speed:0.5, special:null },
+  { id:'exhaust', name:'Exhaust Pipes', socket:'socket_back', icon:'fa-smog', iconBg:'#5a4a3a', mass:0.2, speed:1.0, special:null },
+  { id:'gears_l', name:'Gears (Left)', socket:'socket_left', icon:'fa-gear', iconBg:'#4a4a5a', mass:0.3, speed:0, special:null },
+  { id:'gears_r', name:'Gears (Right)', socket:'socket_right', icon:'fa-gear', iconBg:'#4a4a5a', mass:0.3, speed:0, special:null },
+  { id:'antenna', name:'Sci-Fi Antenna', socket:'socket_top', icon:'fa-satellite-dish', iconBg:'#3a5a6a', mass:0.1, speed:0, special:null },
+  { id:'wings', name:'Mech Wings', socket:'socket_top', icon:'fa-feather', iconBg:'#3a4a6a', mass:0.4, speed:0, special:'glide' },
+  { id:'thruster', name:'Rocket Thrusters', socket:'socket_back', icon:'fa-rocket', iconBg:'#6a3a3a', mass:0.3, speed:3.0, special:'thrust' },
+  { id:'weights', name:'Heavy Plates', socket:'socket_top', icon:'fa-weight-hanging', iconBg:'#5a5a5a', mass:1.0, speed:-1.0, special:null }
+];
+
+// 插座位置（相对于鼠标模型中心）
+const SOCKET_POSITIONS = {
+  socket_top:   new THREE.Vector3(0, 0.38, -0.15),
+  socket_back:  new THREE.Vector3(0, 0.22, -1.05),
+  socket_left:  new THREE.Vector3(-0.6, 0.18, -0.1),
+  socket_right: new THREE.Vector3(0.6, 0.18, -0.1)
+};
+
+// ============================================================
+// Three.js 场景初始化
+// ============================================================
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+// 配置器背景
+const bgCanvas = document.createElement('canvas');
+bgCanvas.width = 512; bgCanvas.height = 512;
+const bgCtx = bgCanvas.getContext('2d');
+const grad = bgCtx.createRadialGradient(256,200,50,256,256,400);
+grad.addColorStop(0, '#1a1a2e');
+grad.addColorStop(0.5, '#0f0f1a');
+grad.addColorStop(1, '#080810');
+bgCtx.fillStyle = grad;
+bgCtx.fillRect(0,0,512,512);
+const bgTexture = new THREE.CanvasTexture(bgCanvas);
+scene.background = bgTexture;
+
+// 相机
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 200);
+camera.position.set(2.2, 2.0, 3.0);
+
+// 灯光
+const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
+scene.add(ambientLight);
+
+const keyLight = new THREE.DirectionalLight(0xfff0dd, 1.8);
+keyLight.position.set(3, 5, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024,1024);
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 20;
+keyLight.shadow.camera.left = -5;
+keyLight.shadow.camera.right = 5;
+keyLight.shadow.camera.top = 5;
+keyLight.shadow.camera.bottom = -5;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0x8090c0, 0.5);
+fillLight.position.set(-3, 2, -2);
+scene.add(fillLight);
+
+const rimLight = new THREE.PointLight(0xe8a838, 0.8, 10);
+rimLight.position.set(-1, 1, -3);
+scene.add(rimLight);
+
+// 地面（配置器模式展示台）
+const platformGeo = new THREE.CylinderGeometry(1.8, 1.9, 0.08, 64);
+const platformMat = new THREE.MeshStandardMaterial({ color:0x181820, roughness:0.3, metalness:0.7 });
+const platform = new THREE.Mesh(platformGeo, platformMat);
+platform.position.y = -0.04;
+platform.receiveShadow = true;
+scene.add(platform);
+
+// 展示台发光环
+const ringGeo = new THREE.TorusGeometry(1.85, 0.015, 8, 128);
+const ringMat = new THREE.MeshBasicMaterial({ color:0xe8a838 });
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = -Math.PI/2;
+ring.position.y = 0.01;
+scene.add(ring);
+
+// 轨道控制器
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 0.2, 0);
+controls.minDistance = 1.5;
+controls.maxDistance = 6;
+controls.maxPolarAngle = Math.PI * 0.48;
+controls.update();
+
+// ============================================================
+// 增强的纹理系统
+// ============================================================
+function makeCarbonTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  // 更精细的碳纤维纹理
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(0,0,256,256);
+  const s = 16;
+  for (let y=0; y<256; y+=s) {
+    for (let x=0; x<256; x+=s) {
+      const even = ((x/s+y/s)%2===0);
+      ctx.fillStyle = even ? '#2a2a2a' : '#151515';
+      ctx.fillRect(x,y,s/2,s/2);
+      ctx.fillRect(x+s/2,y+s/2,s/2,s/2);
+      // 添加一些随机噪声增加真实感
+      if (Math.random() > 0.7) {
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.fillRect(x, y, s, s);
+      }
+    }
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2,2);
+  return tex;
+}
+
+function makeBrushedMetalTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#4a4a4a';
+  ctx.fillRect(0,0,256,256);
+  // 横向拉丝纹理
+  for (let y=0; y<256; y+=2) {
+    const opacity = 0.02 + Math.random() * 0.03;
+    ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(256, y);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.repeat.set(4,1);
+  return tex;
+}
+
+function makeRubberTexture() {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#2d2d2d';
+  ctx.fillRect(0,0,128,128);
+  // 添加微小颗粒感
+  for (let i=0; i<500; i++) {
+    const x = Math.random() * 128;
+    const y = Math.random() * 128;
+    const size = Math.random() * 2;
+    const darkness = Math.random() * 0.1;
+    ctx.fillStyle = `rgba(0,0,0,${darkness})`;
+    ctx.fillRect(x, y, size, size);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2,2);
+  return tex;
+}
+
+function makeGlossyPlasticTexture() {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext('2d');
+  // 创建微光塑料纹理
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,64,64);
+  const noise = ctx.createImageData(64, 64);
+  for (let i=0; i<noise.data.length; i+=4) {
+    const noiseVal = (Math.random() - 0.5) * 2;
+    noise.data[i] = 255 + noiseVal * 5;     // R
+    noise.data[i+1] = 255 + noiseVal * 5;   // G
+    noise.data[i+2] = 255 + noiseVal * 5;   // B
+    noise.data[i+3] = 255;                  // A
+  }
+  ctx.putImageData(noise, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(1,1);
+  return tex;
+}
+
+// 预生成纹理
+const carbonTex = makeCarbonTexture();
+const brushedMetalTex = makeBrushedMetalTexture();
+const rubberTex = makeRubberTexture();
+const glossyPlasticTex = makeGlossyPlasticTexture();
+
+// 增强的材质创建函数
+function makeMat(color, finish, textureOptions = {}) {
+  const params = { 
+    color: new THREE.Color(color),
+    roughness: 0.9,
+    metalness: 0.1
+  };
+
+  // 根据finish类型设置材质属性
+  switch(finish) {
+    case 'matte':
+      params.roughness = 0.8;
+      params.metalness = 0.05;
+      break;
+    case 'glossy':
+      params.roughness = 0.15;
+      params.metalness = 0.3;
+      params.map = glossyPlasticTex;
+      break;
+    case 'carbon':
+      params.map = carbonTex;
+      params.roughness = 0.4;
+      params.metalness = 0.45;
+      break;
+    case 'metal':
+      params.map = brushedMetalTex;
+      params.roughness = 0.2;
+      params.metalness = 0.8;
+      break;
+    case 'rubber':
+      params.map = rubberTex;
+      params.roughness = 0.9;
+      params.metalness = 0.1;
+      break;
+    case 'plastic':
+      params.roughness = 0.3;
+      params.metalness = 0.1;
+      break;
+    default:
+      // 默认处理
+      params.roughness = 0.8;
+      params.metalness = 0.05;
+  }
+
+  // 应用自定义纹理选项
+  if (textureOptions.map) params.map = textureOptions.map;
+  if (textureOptions.roughness !== undefined) params.roughness = textureOptions.roughness;
+  if (textureOptions.metalness !== undefined) params.metalness = textureOptions.metalness;
+
+  return new THREE.MeshStandardMaterial(params);
+}
+
+// ============================================================
+// 鼠标3D模型构建
+// ============================================================
+const mouseGroup = new THREE.Group();
+scene.add(mouseGroup);
+
+// 子网格引用
+const subMeshes = {};
+const socketIndicators = {};
+const attachedAddons = {};
+
+function makeMat(color, finish) {
+  const params = { color: new THREE.Color(color), roughness:0.9, metalness:0.1 };
+  if (finish === 'glossy') { params.roughness = 0.12; params.metalness = 0.35; }
+  if (finish === 'carbon') { params.map = carbonTex; params.roughness = 0.45; params.metalness = 0.4; }
+  return new THREE.MeshStandardMaterial(params);
+}
+
+// 上壳体
+function buildUpperShell() {
+  const geo = new THREE.SphereGeometry(1, 48, 24, 0, Math.PI*2, 0, Math.PI*0.5);
+  const pos = geo.attributes.position;
+  for (let i=0; i<pos.count; i++) {
+    let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    x *= 0.6; y *= 0.36; z *= 1.1;
+    const zN = z / 1.1;
+    if (zN > 0) x *= 1.0 - zN * 0.3;
+    if (zN < -0.3) y *= 1.0 + (-zN - 0.3) * 0.35;
+    pos.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals();
+  const mat = makeMat(store.get().bodyColor, store.get().finish);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  mesh.name = 'upper_shell';
+  return mesh;
+}
+
+// 下壳体
+function buildLowerShell() {
+  const geo = new THREE.CylinderGeometry(0.58, 0.6, 0.06, 48);
+  const mat = new THREE.MeshStandardMaterial({ color:0x111115, roughness:0.6, metalness:0.2 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.y = -0.01;
+  mesh.receiveShadow = true;
+  mesh.name = 'lower_shell';
+  return mesh;
+}
+
+// 鼠标按钮
+function buildButton(isLeft) {
+  const geo = new THREE.BoxGeometry(0.26, 0.035, 0.65, 4, 1, 4);
+  const pos = geo.attributes.position;
+  for (let i=0; i<pos.count; i++) {
+    let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    if (z > 0.2) y -= (z - 0.2) * 0.12;
+    pos.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals();
+  const mat = makeMat(store.get().bodyColor, store.get().finish);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  mesh.position.set(isLeft ? -0.15 : 0.15, 0.345, 0.12);
+  mesh.name = isLeft ? 'btn_left' : 'btn_right';
+  return mesh;
+}
+
+// 滚轮
+function buildScrollWheel() {
+  const geo = new THREE.CylinderGeometry(0.035, 0.035, 0.07, 16);
+  const mat = new THREE.MeshStandardMaterial({ color:0x888888, roughness:0.4, metalness:0.6 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.z = Math.PI/2;
+  mesh.position.set(0, 0.37, 0.18);
+  mesh.name = 'scroll_wheel';
+  return mesh;
+}
+
+// 侧边握把
+function buildGrip(isLeft) {
+  const geo = new THREE.BoxGeometry(0.04, 0.14, 0.7);
+  const mat = new THREE.MeshStandardMaterial({ color:0x222228, roughness:0.95, metalness:0.0 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(isLeft ? -0.58 : 0.58, 0.1, -0.05);
+  mesh.name = isLeft ? 'grip_left' : 'grip_right';
+  return mesh;
+}
+
+// 构建完整鼠标
+function buildMouse() {
+  while (mouseGroup.children.length) mouseGroup.remove(mouseGroup.children[0]);
+  subMeshes.upper = buildUpperShell();
+  subMeshes.lower = buildLowerShell();
+  subMeshes.btnLeft = buildButton(true);
+  subMeshes.btnRight = buildButton(false);
+  subMeshes.scroll = buildScrollWheel();
+  subMeshes.gripLeft = buildGrip(true);
+  subMeshes.gripRight = buildGrip(false);
+
+  Object.values(subMeshes).forEach(m => mouseGroup.add(m));
+
+  // 插座指示器
+  Object.entries(SOCKET_POSITIONS).forEach(([name, pos]) => {
+    const geo = new THREE.SphereGeometry(0.06, 16, 16);
+    const mat = new THREE.MeshBasicMaterial({ color:0xe8a838, transparent:true, opacity:0 });
+    const indicator = new THREE.Mesh(geo, mat);
+    indicator.position.copy(pos);
+    indicator.userData.socketName = name;
+    indicator.name = 'socket_' + name;
+    mouseGroup.add(indicator);
+    socketIndicators[name] = indicator;
+  });
+}
+buildMouse();
+
+// RGB灯带
+let rgbStrip = null;
+function updateRGBStrip() {
+  if (rgbStrip) { mouseGroup.remove(rgbStrip); rgbStrip = null; }
+  if (!store.get().rgbEnabled) return;
+  const points = [];
+  for (let t=0; t<=1; t+=0.02) {
+    const angle = t * Math.PI * 2;
+    const rx = 0.58 * Math.cos(angle);
+    const rz = 1.0 * Math.sin(angle);
+    const taper = (rz > 0) ? 1.0 - (rz/1.0)*0.3 : 1.0;
+    points.push(new THREE.Vector3(rx * taper, 0.02, rz));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = new THREE.LineBasicMaterial({ color:0xff0000, linewidth:2 });
+  rgbStrip = new THREE.Line(geo, mat);
+  rgbStrip.name = 'rgb_strip';
+  mouseGroup.add(rgbStrip);
+}
+
+// 更新鼠标外观
+function updateMouseAppearance() {
+  const s = store.get();
+  const colorMat = makeMat(s.bodyColor, s.finish);
+
+  [subMeshes.upper, subMeshes.btnLeft, subMeshes.btnRight].forEach(m => {
+    if (m) m.material.dispose();
+    if (m) m.material = colorMat;
+  });
+  updateRGBStrip();
+  rebuildAddons();
+}
+
+// ============================================================
+// Addon 3D模型工厂
+// ============================================================
+function createAddonModel(addonId) {
+  const group = new THREE.Group();
+  const metalMat = new THREE.MeshStandardMaterial({ color:0x888899, roughness:0.3, metalness:0.8 });
+  const darkMat = new THREE.MeshStandardMaterial({ color:0x333340, roughness:0.5, metalness:0.6 });
+  const glowMat = new THREE.MeshBasicMaterial({ color:0x38e8a8 });
+
+  switch(addonId) {
+    case 'spoiler': {
+      // 扰流板：竖支柱 + 横翼
+      const stand = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.2, 0.04), metalMat);
+      stand.position.set(0, 0.1, 0);
+      group.add(stand);
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.03, 0.18), darkMat);
+      wing.position.set(0, 0.22, 0);
+      group.add(wing);
+      break;
+    }
+    case 'exhaust': {
+      // 排气管
+      for (let side of [-1, 1]) {
+        const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.2, 12), metalMat);
+        pipe.rotation.x = Math.PI * 0.25;
+        pipe.position.set(side * 0.2, 0.06, -0.08);
+        group.add(pipe);
+        const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.04, 12), darkMat);
+        tip.rotation.x = Math.PI * 0.25;
+        tip.position.set(side * 0.2, 0.04, -0.15);
+        group.add(tip);
+      }
+      break;
+    }
+    case 'gears_l': case 'gears_r': {
+      // 齿轮
+      const ringGeo = new THREE.TorusGeometry(0.12, 0.02, 8, 24);
+      const gear = new THREE.Mesh(ringGeo, metalMat);
+      gear.rotation.y = Math.PI/2;
+      gear.position.set(0, 0, 0);
+      group.add(gear);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.04, 12), darkMat);
+      hub.rotation.z = Math.PI/2;
+      group.add(hub);
+      // 齿
+      for (let i=0; i<8; i++) {
+        const angle = (i/8)*Math.PI*2;
+        const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.025, 0.03), metalMat);
+        tooth.position.set(Math.cos(angle)*0.12, Math.sin(angle)*0.12, 0);
+        group.add(tooth);
+      }
+      break;
+    }
+    case 'antenna': {
+      // 天线
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.4, 8), metalMat);
+      rod.position.set(0, 0.2, 0);
+      group.add(rod);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 12), glowMat);
+      tip.position.set(0, 0.42, 0);
+      group.add(tip);
+      break;
+    }
+    case 'wings': {
+      // 机械翼
+      for (let side of [-1, 1]) {
+        const wingShape = new THREE.Shape();
+        wingShape.moveTo(0, 0);
+        wingShape.lineTo(side * 0.6, 0.15);
+        wingShape.lineTo(side * 0.5, 0);
+        wingShape.closePath();
+        const wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth:0.02, bevelEnabled:false });
+        const wing = new THREE.Mesh(wingGeo, metalMat);
+        wing.rotation.x = -Math.PI * 0.1;
+        wing.position.set(0, 0.1, 0);
+        group.add(wing);
+      }
+      break;
+    }
+    case 'thruster': {
+      // 火箭推进器
+      for (let side of [-1, 1]) {
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.2, 12), darkMat);
+        body.rotation.x = Math.PI * 0.3;
+        body.position.set(side * 0.18, 0.05, -0.05);
+        group.add(body);
+        const nozzle = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.08, 12), metalMat);
+        nozzle.rotation.x = -Math.PI * 0.7;
+        nozzle.position.set(side * 0.18, 0.02, -0.14);
+        group.add(nozzle);
+        // 火焰
+        const flame = new THREE.Mesh(
+          new THREE.ConeGeometry(0.04, 0.15, 8),
+          new THREE.MeshBasicMaterial({ color:0xff6622, transparent:true, opacity:0.8 })
+        );
+        flame.rotation.x = -Math.PI * 0.7;
+        flame.position.set(side * 0.18, -0.04, -0.22);
+        flame.name = 'flame';
+        group.add(flame);
+      }
+      break;
+    }
+    case 'weights': {
+      // 配重板
+      for (let side of [-1, 1]) {
+        const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.04, 24), darkMat);
+        plate.position.set(side * 0.18, 0.08, 0);
+        group.add(plate);
+      }
+      break;
+    }
+  }
+  group.traverse(c => { if (c.isMesh) c.castShadow = true; });
+  return group;
+}
+
+// 重建所有已附加的Addon
+function rebuildAddons() {
+  // 移除旧的addon模型
+  Object.keys(attachedAddons).forEach(key => {
+    if (attachedAddons[key]) {
+      mouseGroup.remove(attachedAddons[key]);
+      attachedAddons[key] = null;
+    }
+  });
+  const addons = store.get().addons;
+  Object.entries(addons).forEach(([socket, addonId]) => {
+    if (!addonId) return;
+    const model = createAddonModel(addonId);
+    const pos = SOCKET_POSITIONS[socket];
+    model.position.copy(pos);
+    model.userData.addonId = addonId;
+    model.userData.socketName = socket;
+    mouseGroup.add(model);
+    attachedAddons[socket] = model;
+  });
+}
+
+// ============================================================
+// 物理引擎（简易Euler积分 + AABB碰撞）
+// ============================================================
+const GRAVITY = -15;
+const GROUND_Y = 0;
+
+class PhysicsBody {
+  constructor(pos, halfExt, mass, isStatic = false) {
+    this.position = pos.clone();
+    this.velocity = new THREE.Vector3();
+    this.halfExtents = halfExt.clone();
+    this.mass = Math.max(0.01, mass);
+    this.isStatic = isStatic;
+    this.onGround = false;
+    this.mesh = null;
+  }
+  update(dt) {
+    if (this.isStatic) return;
+    this.velocity.y += GRAVITY * dt;
+    this.position.addScaledVector(this.velocity, dt);
+    if (this.position.y - this.halfExtents.y < GROUND_Y) {
+      this.position.y = GROUND_Y + this.halfExtents.y;
+      if (this.velocity.y < 0) this.velocity.y = 0;
+      this.onGround = true;
+    } else {
+      this.onGround = false;
+    }
+    // 边界
+    this.position.x = THREE.MathUtils.clamp(this.position.x, -14, 14);
+    this.position.z = THREE.MathUtils.clamp(this.position.z, -14, 14);
+  }
+}
+
+function aabbOverlap(a, b) {
+  return Math.abs(a.position.x - b.position.x) < (a.halfExtents.x + b.halfExtents.x) &&
+         Math.abs(a.position.y - b.position.y) < (a.halfExtents.y + b.halfExtents.y) &&
+         Math.abs(a.position.z - b.position.z) < (a.halfExtents.z + b.halfExtents.z);
+}
+
+function resolveCollision(dynamic, statik) {
+  const dx = dynamic.position.x - statik.position.x;
+  const dy = dynamic.position.y - statik.position.y;
+  const dz = dynamic.position.z - statik.position.z;
+  const overlapX = (dynamic.halfExtents.x + statik.halfExtents.x) - Math.abs(dx);
+  const overlapY = (dynamic.halfExtents.y + statik.halfExtents.y) - Math.abs(dy);
+  const overlapZ = (dynamic.halfExtents.z + statik.halfExtents.z) - Math.abs(dz);
+  if (overlapX <= 0 || overlapY <= 0 || overlapZ <= 0) return;
+  const minOverlap = Math.min(overlapX, overlapY, overlapZ);
+  if (minOverlap === overlapY) {
+    dynamic.position.y += (dy > 0 ? overlapY : -overlapY);
+    if (dy < 0) { dynamic.onGround = true; }
+    dynamic.velocity.y = 0;
+  } else if (minOverlap === overlapX) {
+    dynamic.position.x += (dx > 0 ? overlapX : -overlapX);
+    dynamic.velocity.x *= -0.3;
+  } else {
+    dynamic.position.z += (dz > 0 ? overlapZ : -overlapZ);
+    dynamic.velocity.z *= -0.3;
+  }
+}
+
+// ============================================================
+// 游戏环境构建
+// ============================================================
+const envGroup = new THREE.Group();
+envGroup.visible = false;
+scene.add(envGroup);
+
+const envBodies = [];
+
+function buildPlayEnvironment() {
+  while (envGroup.children.length) envGroup.remove(envGroup.children[0]);
+  envBodies.length = 0;
+
+  // 地面
+  const floorGeo = new THREE.PlaneGeometry(30, 30);
+  const floorMat = new THREE.MeshStandardMaterial({ color:0x8B7355, roughness:0.8, metalness:0.05 });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.receiveShadow = true;
+  envGroup.add(floor);
+
+  // 地面网格线
+  const gridHelper = new THREE.GridHelper(30, 30, 0x665544, 0x554433);
+  gridHelper.position.y = 0.01;
+  envGroup.add(gridHelper);
+
+  // 咖啡杯
+  const mugGroup = new THREE.Group();
+  const mugBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.5, 0.45, 1.0, 24),
+    new THREE.MeshStandardMaterial({ color:0xf5f5f0, roughness:0.3, metalness:0.1 })
+  );
+  mugBody.position.y = 0.5;
+  mugBody.castShadow = true;
+  mugGroup.add(mugBody);
+  // 把手
+  const handleGeo = new THREE.TorusGeometry(0.2, 0.04, 8, 16, Math.PI);
+  const handle = new THREE.Mesh(handleGeo, new THREE.MeshStandardMaterial({ color:0xf5f5f0, roughness:0.3 }));
+  handle.position.set(0.55, 0.5, 0);
+  handle.rotation.y = Math.PI/2;
+  mugGroup.add(handle);
+  mugGroup.position.set(3, 0, 2);
+  envGroup.add(mugGroup);
+  envBodies.push(new PhysicsBody(new THREE.Vector3(3, 0.5, 2), new THREE.Vector3(0.5, 0.5, 0.5), 0, true));
+  envBodies[envBodies.length-1].mesh = mugGroup;
+
+  // 键盘坡道
+  const rampGeo = new THREE.BoxGeometry(3, 0.15, 1.2);
+  const rampMat = new THREE.MeshStandardMaterial({ color:0x333338, roughness:0.5, metalness:0.3 });
+  const ramp = new THREE.Mesh(rampGeo, rampMat);
+  ramp.position.set(-2, 0.075, 3);
+  ramp.rotation.y = 0.3;
+  ramp.castShadow = true; ramp.receiveShadow = true;
+  envGroup.add(ramp);
+  envBodies.push(new PhysicsBody(new THREE.Vector3(-2, 0.075, 3), new THREE.Vector3(1.5, 0.075, 0.6), 0, true));
+
+  // 键盘按键
+  for (let row=0; row<4; row++) {
+    for (let col=0; col<8; col++) {
+      const key = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, 0.06, 0.2),
+        new THREE.MeshStandardMaterial({ color: (row+col)%2===0 ? 0x444450 : 0x3a3a44, roughness:0.6, metalness:0.2 })
+      );
+      key.position.set(-3.1 + col*0.28, 0.18, 2.3 + row*0.3);
+      key.castShadow = true;
+      envGroup.add(key);
+    }
+  }
+
+  // 笔记本桥
+  const notebookGeo = new THREE.BoxGeometry(2.5, 0.06, 1.8);
+  const notebookMat = new THREE.MeshStandardMaterial({ color:0x4466aa, roughness:0.6, metalness:0.1 });
+  const notebook = new THREE.Mesh(notebookGeo, notebookMat);
+  notebook.position.set(0, 0.8, -3);
+  notebook.castShadow = true; notebook.receiveShadow = true;
+  envGroup.add(notebook);
+  // 桥支撑
+  const support1 = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.8, 0.15), new THREE.MeshStandardMaterial({ color:0x888888 }));
+  support1.position.set(-1.1, 0.4, -3);
+  envGroup.add(support1);
+  const support2 = support1.clone();
+  support2.position.set(1.1, 0.4, -3);
+  envGroup.add(support2);
+  envBodies.push(new PhysicsBody(new THREE.Vector3(0, 0.83, -3), new THREE.Vector3(1.25, 0.03, 0.9), 0, true));
+
+  // 铅笔
+  for (let i=0; i<3; i++) {
+    const pencil = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.03, 1.5, 8),
+      new THREE.MeshStandardMaterial({ color:[0xffcc00, 0xff4444, 0x44aaff][i], roughness:0.4 })
+    );
+    pencil.rotation.z = Math.PI/2;
+    pencil.rotation.y = i * 0.5;
+    pencil.position.set(1 + i*0.3, 0.03, -1 + i*0.4);
+    pencil.castShadow = true;
+    envGroup.add(pencil);
+  }
+
+  // 显示器
+  const monitorBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.4, 0.45, 0.08, 24),
+    new THREE.MeshStandardMaterial({ color:0x333340, roughness:0.3, metalness:0.5 })
+  );
+  monitorBase.position.set(-4, 0.04, -2);
+  envGroup.add(monitorBase);
+  const monitorStand = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 1.2, 0.1),
+    new THREE.MeshStandardMaterial({ color:0x444450, roughness:0.3, metalness:0.5 })
+  );
+  monitorStand.position.set(-4, 0.6, -2);
+  envGroup.add(monitorStand);
+  const monitorScreen = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 1.2, 0.08),
+    new THREE.MeshStandardMaterial({ color:0x111118, roughness:0.2, metalness:0.4, emissive:0x112233, emissiveIntensity:0.3 })
+  );
+  monitorScreen.position.set(-4, 1.4, -2);
+  monitorScreen.castShadow = true;
+  envGroup.add(monitorScreen);
+  envBodies.push(new PhysicsBody(new THREE.Vector3(-4, 0.7, -2), new THREE.Vector3(1, 1.4, 0.1), 0, true));
+
+  // 散落的回形针
+  for (let i=0; i<6; i++) {
+    const clip = new THREE.Mesh(
+      new THREE.TorusGeometry(0.08, 0.012, 6, 12),
+      new THREE.MeshStandardMaterial({ color:0xcccccc, roughness:0.3, metalness:0.7 })
+    );
+    clip.position.set(2 + Math.random()*3, 0.01, -1 + Math.random()*2);
+    clip.rotation.x = -Math.PI/2;
+    clip.rotation.z = Math.random() * Math.PI;
+    envGroup.add(clip);
+  }
+
+  // 便签纸
+  const sticky = new THREE.Mesh(
+    new THREE.BoxGeometry(0.8, 0.01, 0.8),
+    new THREE.MeshStandardMaterial({ color:0xffee55, roughness:0.8 })
+  );
+  sticky.position.set(4, 0.005, -2);
+  sticky.rotation.y = 0.4;
+  envGroup.add(sticky);
+
+  // 大纸箱（可推动物体）
+  const crateGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+  const crateMat = new THREE.MeshStandardMaterial({ color:0xAA8855, roughness:0.7, metalness:0.1 });
+  const crate1 = new THREE.Mesh(crateGeo, crateMat);
+  crate1.position.set(2, 0.3, -3);
+  crate1.castShadow = true;
+  envGroup.add(crate1);
+  const crateBody = new PhysicsBody(new THREE.Vector3(2, 0.3, -3), new THREE.Vector3(0.3, 0.3, 0.3), 2, false);
+  crateBody.mesh = crate1;
+  envBodies.push(crateBody);
+
+  const crate2 = crate1.clone();
+  crate2.position.set(2.5, 0.3, -2.5);
+  envGroup.add(crate2);
+  const crateBody2 = new PhysicsBody(new THREE.Vector3(2.5, 0.3, -2.5), new THREE.Vector3(0.3, 0.3, 0.3), 2, false);
+  crateBody2.mesh = crate2;
+  envBodies.push(crateBody2);
+}
+buildPlayEnvironment();
+
+// ============================================================
+// 输入系统
+// ============================================================
+const input = { forward:0, right:0, jump:false, action:false, camX:0, camY:0 };
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+function updateInput() {
+  input.forward = 0; input.right = 0; input.jump = false; input.action = false;
+  if (keys['KeyW'] || keys['ArrowUp']) input.forward = 1;
+  if (keys['KeyS'] || keys['ArrowDown']) input.forward = -1;
+  if (keys['KeyA'] || keys['ArrowLeft']) input.right = -1;
+  if (keys['KeyD'] || keys['ArrowRight']) input.right = 1;
+  if (keys['Space']) { input.jump = true; input.action = true; }
+}
+
+// ============================================================
+// 虚拟摇杆（移动端）
+// ============================================================
+const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const joystickZone = document.getElementById('joystick-zone');
+const joystickBase = document.getElementById('joystick-base');
+const joystickKnob = document.getElementById('joystick-knob');
+const actionBtn = document.getElementById('action-btn');
+let joystickActive = false;
+let joystickCenter = { x:0, y:0 };
+
+if (isMobile) {
+  joystickZone.style.display = 'block';
+  actionBtn.style.display = 'flex';
+
+  joystickBase.addEventListener('touchstart', e => {
+    e.preventDefault();
+    joystickActive = true;
+    const rect = joystickBase.getBoundingClientRect();
+    joystickCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+  }, { passive:false });
+
+  window.addEventListener('touchmove', e => {
+    if (!joystickActive) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const dx = t.clientX - joystickCenter.x;
+    const dy = t.clientY - joystickCenter.y;
+    const maxR = 40;
+    const dist = Math.min(Math.sqrt(dx*dx+dy*dy), maxR);
+    const angle = Math.atan2(dy, dx);
+    const nx = Math.cos(angle) * dist;
+    const ny = Math.sin(angle) * dist;
+    joystickKnob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+    input.right = nx / maxR;
+    input.forward = -ny / maxR;
+  }, { passive:false });
+
+  window.addEventListener('touchend', e => {
+    if (!joystickActive) return;
+    joystickActive = false;
+    joystickKnob.style.transform = 'translate(-50%,-50%)';
+    input.forward = 0; input.right = 0;
+  });
+
+  actionBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    input.action = true; input.jump = true;
+  }, { passive:false });
+  actionBtn.addEventListener('touchend', () => { input.action = false; input.jump = false; });
+
+  // 移动端相机控制
+  let camTouchId = null;
+  let camLastX = 0, camLastY = 0;
+  renderer.domElement.addEventListener('touchstart', e => {
+    if (store.get().mode !== 'play') return;
+    for (const t of e.changedTouches) {
+      if (t.clientX > window.innerWidth * 0.4) {
+        camTouchId = t.identifier;
+        camLastX = t.clientX;
+        camLastY = t.clientY;
+      }
+    }
+  }, { passive:true });
+  renderer.domElement.addEventListener('touchmove', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier === camTouchId) {
+        input.camX += (t.clientX - camLastX) * 0.005;
+        input.camY += (t.clientY - camLastY) * 0.003;
+        camLastX = t.clientX;
+        camLastY = t.clientY;
+      }
+    }
+  }, { passive:true });
+  renderer.domElement.addEventListener('touchend', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier === camTouchId) camTouchId = null;
+    }
+  });
+}
+
+// 桌面端右键拖拽相机（Play Mode）
+let rightDrag = false, rightLastX = 0, rightLastY = 0;
+renderer.domElement.addEventListener('mousedown', e => {
+  if (e.button === 2 && store.get().mode === 'play') { rightDrag = true; rightLastX = e.clientX; rightLastY = e.clientY; }
+});
+window.addEventListener('mousemove', e => {
+  if (!rightDrag) return;
+  input.camX += (e.clientX - rightLastX) * 0.004;
+  input.camY = THREE.MathUtils.clamp(input.camY + (e.clientY - rightLastY) * 0.003, -0.5, 1.2);
+  rightLastX = e.clientX; rightLastY = e.clientY;
+});
+window.addEventListener('mouseup', e => { if (e.button === 2) rightDrag = false; });
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+// ============================================================
+// 游戏模式逻辑
+// ============================================================
+let playerBody = null;
+let cameraYaw = Math.PI;
+let cameraPitch = 0.4;
+let cameraDist = 4;
+let isGliding = false;
+let thrustActive = false;
+let thrustFuel = 100;
+
+function getStats() {
+  const addons = store.get().addons;
+  let mass = 1, speed = 5, hasGlide = false, hasThrust = false;
+  Object.values(addons).forEach(addonId => {
+    if (!addonId) return;
+    const def = ADDON_DEFS.find(d => d.id === addonId);
+    if (!def) return;
+    mass += def.mass;
+    speed += def.speed;
+    if (def.special === 'glide') hasGlide = true;
+    if (def.special === 'thrust') hasThrust = true;
+  });
+  speed = Math.max(1, speed);
+  return { mass, speed, hasGlide, hasThrust };
+}
+
+function enterPlayMode() {
+  const s = store.get();
+  if (s.mode === 'play') return;
+  store.set({ mode: 'play' });
+
+  // 隐藏配置器UI
+  document.getElementById('sidebar').classList.add('hidden');
+  document.getElementById('play-btn').style.display = 'none';
+  document.getElementById('exit-btn').style.display = 'block';
+  document.getElementById('play-hud').style.display = 'block';
+
+  // 切换场景
+  platform.visible = false;
+  ring.visible = false;
+  envGroup.visible = true;
+
+  // 设置鼠标位置
+  mouseGroup.position.set(0, 0.18, 0);
+  mouseGroup.rotation.set(0, 0, 0);
+
+  // 创建玩家物理体
+  const stats = getStats();
+  playerBody = new PhysicsBody(
+    new THREE.Vector3(0, 0.18, 0),
+    new THREE.Vector3(0.35, 0.18, 0.55),
+    stats.mass
+  );
+  playerBody.mesh = mouseGroup;
+
+  // 禁用OrbitControls
+  controls.enabled = false;
+
+  // 重置相机
+  cameraYaw = Math.PI;
+  cameraPitch = 0.4;
+
+  // 更新HUD
+  updateHUD();
+
+  // 隐藏插座指示器
+  Object.values(socketIndicators).forEach(ind => { ind.material.opacity = 0; });
+
+  showToast('Arena activated — WASD to drive!');
+}
+
+function exitPlayMode() {
+  const s = store.get();
+  if (s.mode === 'configurator') return;
+  store.set({ mode: 'configurator' });
+
+  document.getElementById('sidebar').classList.remove('hidden');
+  document.getElementById('play-btn').style.display = 'block';
+  document.getElementById('exit-btn').style.display = 'none';
+  document.getElementById('play-hud').style.display = 'none';
+
+  platform.visible = true;
+  ring.visible = true;
+  envGroup.visible = false;
+
+  mouseGroup.position.set(0, 0, 0);
+  mouseGroup.rotation.set(0, 0, 0);
+
+  playerBody = null;
+
+  controls.enabled = true;
+  controls.target.set(0, 0.2, 0);
+  camera.position.set(2.2, 2.0, 3.0);
+  controls.update();
+}
+
+function updateHUD() {
+  const stats = getStats();
+  document.getElementById('stat-speed').textContent = stats.speed.toFixed(1);
+  document.getElementById('stat-mass').textContent = stats.mass.toFixed(1);
+  let abilHTML = '';
+  if (stats.hasGlide) abilHTML += '<span class="ability-tag ability-glide">GLIDE</span>';
+  if (stats.hasThrust) abilHTML += '<span class="ability-tag ability-thrust">THRUST</span>';
+  if (!abilHTML) abilHTML = '<span style="color:var(--muted)">None</span>';
+  document.getElementById('stat-abilities').innerHTML = abilHTML;
+}
+
+function updatePlayMode(dt) {
+  if (!playerBody) return;
+  updateInput();
+  const stats = getStats();
+
+  // 相机旋转
+  cameraYaw += input.camX;
+  cameraPitch = THREE.MathUtils.clamp(cameraPitch + input.camY, 0.05, 1.3);
+  input.camX = 0; input.camY = 0;
+
+  // 移动方向（相对于相机）
+  const forward = new THREE.Vector3(-Math.sin(cameraYaw), 0, -Math.cos(cameraYaw));
+  const right = new THREE.Vector3(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
+  const moveDir = new THREE.Vector3();
+  moveDir.addScaledVector(forward, input.forward);
+  moveDir.addScaledVector(right, input.right);
+  if (moveDir.length() > 0) moveDir.normalize();
+
+  // 加速/减速
+  const accel = stats.speed * 8;
+  const friction = 6;
+  playerBody.velocity.x += moveDir.x * accel * dt;
+  playerBody.velocity.z += moveDir.z * accel * dt;
+
+  // 摩擦力
+  if (moveDir.length() < 0.1) {
+    playerBody.velocity.x *= Math.max(0, 1 - friction * dt);
+    playerBody.velocity.z *= Math.max(0, 1 - friction * dt);
+  }
+
+  // 限速
+  const hSpeed = Math.sqrt(playerBody.velocity.x**2 + playerBody.velocity.z**2);
+  const maxSpeed = stats.speed * 1.2;
+  if (hSpeed > maxSpeed) {
+    const scale = maxSpeed / hSpeed;
+    playerBody.velocity.x *= scale;
+    playerBody.velocity.z *= scale;
+  }
+
+  // 跳跃
+  if (input.jump && playerBody.onGround) {
+    playerBody.velocity.y = 5 / Math.sqrt(stats.mass);
+    input.jump = false;
+  }
+
+  // 滑翔
+  isGliding = false;
+  if (stats.hasGlide && !playerBody.onGround && input.action && playerBody.velocity.y < -1) {
+    playerBody.velocity.y = Math.max(playerBody.velocity.y, -1.5);
+    isGliding = true;
+  }
+
+  // 推进器
+  thrustActive = false;
+  if (stats.hasThrust && input.action) {
+    if (thrustFuel > 0) {
+      const thrustDir = moveDir.length() > 0.1 ? moveDir : forward;
+      playerBody.velocity.x += thrustDir.x * 20 * dt;
+      playerBody.velocity.z += thrustDir.z * 20 * dt;
+      thrustFuel -= 30 * dt;
+      thrustActive = true;
+    }
+  } else {
+    thrustFuel = Math.min(100, thrustFuel + 15 * dt);
+  }
+
+  // 物理更新
+  playerBody.update(dt);
+
+  // 碰撞检测
+  envBodies.forEach(body => {
+    if (body === playerBody) return;
+    if (aabbOverlap(playerBody, body)) {
+      if (body.isStatic) {
+        resolveCollision(playerBody, body);
+      } else {
+        // 推动动态物体
+        const pushDir = new THREE.Vector3().subVectors(body.position, playerBody.position).normalize();
+        const pushForce = stats.mass * 3;
+        body.velocity.x += pushDir.x * pushForce * dt;
+        body.velocity.z += pushDir.z * pushForce * dt;
+        resolveCollision(playerBody, body);
+      }
+    }
+  });
+
+  // 更新动态环境物体
+  envBodies.forEach(body => {
+    if (body.isStatic || body === playerBody) return;
+    body.velocity.x *= 0.95;
+    body.velocity.z *= 0.95;
+    body.update(dt);
+    if (body.mesh) body.mesh.position.copy(body.position);
+  });
+
+  // 更新鼠标模型位置和旋转
+  mouseGroup.position.copy(playerBody.position);
+  if (hSpeed > 0.1) {
+    const targetRot = Math.atan2(playerBody.velocity.x, playerBody.velocity.z);
+    let diff = targetRot - mouseGroup.rotation.y;
+    while (diff > Math.PI) diff -= Math.PI*2;
+    while (diff < -Math.PI) diff += Math.PI*2;
+    mouseGroup.rotation.y += diff * 8 * dt;
+  }
+
+  // 推进器火焰动画
+  Object.values(attachedAddons).forEach(addon => {
+    if (!addon) return;
+    addon.traverse(c => {
+      if (c.name === 'flame') {
+        c.visible = thrustActive;
+        if (thrustActive) c.scale.y = 0.8 + Math.random() * 0.5;
+      }
+    });
+  });
+
+  // 相机跟随
+  const camOffset = new THREE.Vector3(
+    Math.sin(cameraYaw) * cameraDist * Math.cos(cameraPitch),
+    cameraDist * Math.sin(cameraPitch) + 0.5,
+    Math.cos(cameraYaw) * cameraDist * Math.cos(cameraPitch)
+  );
+  const targetCamPos = playerBody.position.clone().add(camOffset);
+  camera.position.lerp(targetCamPos, 5 * dt);
+  const lookTarget = playerBody.position.clone().add(new THREE.Vector3(0, 0.2, 0));
+  camera.lookAt(lookTarget);
+}
+
+// ============================================================
+// UI 事件绑定
+// ============================================================
+
+// 颜色选择
+const colorGrid = document.getElementById('color-grid');
+COLORS.forEach((c, i) => {
+  const swatch = document.createElement('div');
+  swatch.className = 'color-swatch' + (c.hex === store.get().bodyColor ? ' active' : '');
+  swatch.style.background = c.hex;
+  swatch.title = c.name;
+  swatch.setAttribute('aria-label', c.name + ' color');
+  swatch.addEventListener('click', () => {
+    store.set({ bodyColor: c.hex });
+    colorGrid.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    updateMouseAppearance();
+  });
+  colorGrid.appendChild(swatch);
+});
+
+// 表面处理选择
+const finishGrid = document.getElementById('finish-grid');
+FINISHES.forEach(f => {
+  const item = document.createElement('div');
+  item.className = 'finish-item' + (f.toLowerCase() === store.get().finish ? ' active' : '');
+  item.textContent = f;
+  item.addEventListener('click', () => {
+    store.set(state => {
+      state.finish = f.toLowerCase();
+      return state;
+    });
+    finishGrid.querySelectorAll('.finish-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    updateMouseAppearance();
+  });
+  finishGrid.appendChild(item);
+});
+
+// RGB切换
+document.getElementById('rgb-toggle').addEventListener('click', () => {
+  const s = store.get();
+  store.set({ rgbEnabled: !s.rgbEnabled });
+  document.getElementById('rgb-switch').classList.toggle('on', !s.rgbEnabled);
+  updateRGBStrip();
+});
+
+// Addon列表
+const addonListEl = document.getElementById('addon-list');
+function renderAddonList() {
+  addonListEl.innerHTML = '';
+  const currentAddons = store.get().addons;
+  ADDON_DEFS.forEach(def => {
+    const isAttached = Object.values(currentAddons).includes(def.id);
+    const item = document.createElement('div');
+    item.className = 'addon-item' + (isAttached ? ' attached' : '');
+    item.innerHTML = `
+      <div class="addon-icon" style="background:${def.iconBg}"><i class="fas ${def.icon}"></i></div>
+      <div class="addon-info">
+        <div class="addon-name">${def.name}</div>
+        <div class="addon-socket">${def.socket.replace('socket_','')} · ${def.special ? def.special.toUpperCase() : `mass:+${def.mass} spd:${def.speed>=0?'+':''}${def.speed}`}</div>
+      </div>
+      <div class="addon-remove"><i class="fas fa-xmark"></i></div>
+    `;
+    item.addEventListener('click', () => {
+      if (isAttached) {
+        // 移除addon
+        store.set(state => {
+          const addons = { ...state.addons };
+          Object.keys(addons).forEach(k => { if (addons[k] === def.id) addons[k] = null; });
+          return { addons };
+        });
+        showToast(`Removed ${def.name}`);
+      } else {
+        // 附加addon到对应插座
+        const socket = def.socket;
+        const current = store.get().addons;
+        if (current[socket] !== null) {
+          showToast(`Socket ${socket.replace('socket_','')} is occupied — remove first`);
+          return;
+        }
+        store.set(state => ({
+          addons: { ...state.addons, [socket]: def.id }
+        }));
+        showToast(`Attached ${def.name} to ${socket.replace('socket_','')}`);
+      }
+      renderAddonList();
+      updateMouseAppearance();
+      updateHUD();
+      flashSockets();
+    });
+    addonListEl.appendChild(item);
+  });
+}
+renderAddonList();
+
+// 清除所有addon
+document.getElementById('clear-btn').addEventListener('click', () => {
+  store.set({ addons: { socket_top:null, socket_back:null, socket_left:null, socket_right:null } });
+  renderAddonList();
+  updateMouseAppearance();
+  updateHUD();
+  showToast('All add-ons cleared');
+});
+
+// 插座闪烁效果
+function flashSockets() {
+  const s = store.get();
+  Object.entries(socketIndicators).forEach(([name, ind]) => {
+    if (s.addons[name] === null) {
+      ind.material.opacity = 0.6;
+      setTimeout(() => { ind.material.opacity = 0; }, 800);
+    }
+  });
+}
+
+// 模式切换按钮
+document.getElementById('play-btn').addEventListener('click', enterPlayMode);
+document.getElementById('exit-btn').addEventListener('click', exitPlayMode);
+
+// Toast通知
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ============================================================
+// 动画循环
+// ============================================================
+const clock = new THREE.Clock();
+let elapsed = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  elapsed += dt;
+
+  if (store.get().mode === 'configurator') {
+    controls.update();
+    // 鼠标缓慢旋转展示
+    mouseGroup.rotation.y += dt * 0.15;
+
+    // RGB灯带颜色循环
+    if (store.get().rgbEnabled && rgbStrip) {
+      const hue = (elapsed * 0.3) % 1;
+      rgbStrip.material.color.setHSL(hue, 1, 0.5);
+    }
+
+    // 插座指示器脉动
+    const s = store.get();
+    Object.entries(socketIndicators).forEach(([name, ind]) => {
+      if (s.addons[name] === null) {
+        ind.material.opacity = 0.15 + Math.sin(elapsed * 3) * 0.1;
+      } else {
+        ind.material.opacity = 0;
+      }
+    });
+
+    // 展示台环发光
+    ring.material.color.setHSL(0.08 + Math.sin(elapsed * 0.5) * 0.02, 0.8, 0.55);
+
+  } else {
+    // Play Mode
+    updatePlayMode(dt);
+
+    // RGB灯带颜色循环
+    if (store.get().rgbEnabled && rgbStrip) {
+      const hue = (elapsed * 0.3) % 1;
+      rgbStrip.material.color.setHSL(hue, 1, 0.5);
+    }
+
+    // 天线闪烁
+    Object.values(attachedAddons).forEach(addon => {
+      if (!addon) return;
+      addon.traverse(c => {
+        if (c.material && c.material.isMeshBasicMaterial && c.geometry.type === 'SphereGeometry') {
+          c.material.color.setHSL((elapsed * 0.5) % 1, 1, 0.5 + Math.sin(elapsed * 8) * 0.2);
+        }
+      });
+    });
+  }
+
+  // 环境光微调
+  rimLight.intensity = 0.6 + Math.sin(elapsed * 0.8) * 0.2;
+
+  renderer.render(scene, camera);
+}
+
+// 窗口大小调整
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// 启动
+animate();
+showToast('Customize your mouse, then enter the arena!');
+
+// 初始化外观
+updateMouseAppearance();
+</script>
+</body>
+</html>
