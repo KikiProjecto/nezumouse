@@ -1,8 +1,6 @@
 <h1 align="center">nezumouse</h1>
 
-<div align="center"/>
-  <li>under maintenance</li>
-</div>
+<div align="center">under maintenance</div>
 
 ---
 
