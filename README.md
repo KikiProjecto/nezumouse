@@ -7,5 +7,5 @@
 ## Preview
 
 <div align="center"/>
-  <img src="visual/preview.gif" alt="preview" width="75%"/>
+  <img src="visual/preview.gif" alt="preview" width="100%"/>
 </div>
